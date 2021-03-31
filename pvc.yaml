@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-jenkins-master-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-jenkins
+  resources:
+    requests:
+      storage: 1Gi

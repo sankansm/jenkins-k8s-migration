@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins-master
+  labels:
+   app: jenkins-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins-master
+
+  template:
+    metadata:
+      labels:
+        app: jenkins-master
+    spec: 
+      containers:
+        - name: jenkins
+          image: 035385703479.dkr.ecr.ap-southeast-1.amazonaws.com/jenkins-master:latest
+          env:
+            - name: JAVA_OPTS
+              value: -Djenkins.install.runSetupWizard=false
+          ports:
+            - name: http-port
+              containerPort: 8080
+            - name: jnlp-port
+              containerPort: 50000
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: jenkins-home
+              mountPath: /var/jenkins_home
+          resources:
+            requests:
+              memory: "2000Mi"
+            limits:
+              memory: "3000Mi"
+      serviceAccountName: jenkins
+      volumes:
+        - name: jenkins-home
+          persistentVolumeClaim:
+            claimName: efs-jenkins-master-claim
