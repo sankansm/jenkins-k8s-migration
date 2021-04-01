@@ -1,0 +1,41 @@
+pipeline{
+
+    agent any
+    parameters {
+    gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', name: 'BRANCH', type: 'PT_BRANCH'
+    }
+    stages{
+        stage ('Clean Up Workspace'){
+            steps {
+                sh 'rm -rf *'
+            }
+        }
+        stage ('git Checkout'){
+            steps {
+                 git credentialsId: 'jenkins1', branch: "${params.BRANCH}", url: 'https://gitlab.devops.mhealth.tech/devops-infra/vault-terraform.git'
+            }
+        }
+        stage ('copy config file'){
+            steps {
+                sh 'aws s3 cp vault.hcl s3://consultation-filesharing/vault/${DEPLOY_ENV}/vault.hcl'
+                sh 'aws s3 cp vault.service s3://consultation-filesharing/vault/${DEPLOY_ENV}/vault.service'
+            }
+        }
+        stage ('init terraform'){
+            steps {
+                sh 'terraform init -input=false'
+                }
+            }
+        stage ('plan terraform'){
+            steps {
+                sh 'terraform plan -out=tfplan -input=false'
+                }
+            }
+        stage ('apply terraform'){
+            steps {
+                sh 'terraform apply -input=false tfplan'
+                }
+            }    
+        
+        }
+    }
